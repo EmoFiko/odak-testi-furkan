@@ -1,0 +1,22 @@
+document.addEventListener("DOMContentLoaded", async ()=>{
+  const stim = document.getElementById('stimulus');
+  const letters = "ABCDEFGH";
+  let stream=[], hits=0, correct=0;
+  for(let i=0;i<25;i++){
+    const ch = letters[Math.floor(Math.random()*letters.length)];
+    stream.push(ch);
+    stim.textContent = ch;
+    let pressed=false;
+    function handler(){pressed=true;}
+    document.body.addEventListener('click',handler);
+    await new Promise(r=>setTimeout(r,1500));
+    document.body.removeEventListener('click',handler);
+    const isTarget = (i>=2 && ch===stream[i-2]);
+    if(isTarget && pressed) correct++;
+    if(!isTarget && !pressed) correct++;
+  }
+  let sc = JSON.parse(localStorage.getItem('scores'));
+  sc.nback = Math.round(correct/25*100);
+  localStorage.setItem('scores', JSON.stringify(sc));
+  location = 'pwr.html';
+});
