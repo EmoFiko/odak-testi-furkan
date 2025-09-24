@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sonuçlar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🏆 Sonuçlar</h1>
+  <div id="detail"></div>
+  <h2 id="final"></h2>
+
+<script>
+const sc = JSON.parse(localStorage.getItem('scores'));
+const d = document.getElementById('detail');
+d.innerHTML = `
+ ⚡ Reaksiyon: ${sc.reaction?.toFixed(0)} ms<br>
+ 🟢 Go/No-Go: ${sc.gonogo}%<br>
+ 🎨 Stroop: ${sc.stroop}%<br>
+ 🔁 N-Back: ${sc.nback}%<br>
+ ⏩ PWR: ${sc.pwr}%
+`;
+const rtScore = Math.max(0,100 - (sc.reaction-200)/3);
+const meanOthers = (sc.gonogo + sc.stroop + sc.nback + sc.pwr)/4;
+document.getElementById('final').innerText =
+  `Genel Odak Puanı: ${((rtScore + meanOthers)/2).toFixed(1)}/100`;
+</script>
+</body>
+</html>
