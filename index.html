@@ -2,174 +2,18 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Odak Testi</title>
-<style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background:#f8f8f8; }
-  h1 { margin-bottom: 0.5em; }
-  button { margin: 8px; padding: 12px 24px; font-size: 18px; cursor: pointer; }
-  #stimulus { font-size: 40px; margin: 40px auto; min-height: 80px; }
-  .hidden { display:none; }
-  #results { margin-top: 20px; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<h1>Odak Test Paketi</h1>
-<p>Başlamak için sırayla testlere tıkla.</p>
-
-<div id="menu">
-  <button onclick="startReaction()">1) Reaksiyon Süresi</button>
-  <button onclick="startGoNoGo()">2) Go / No-Go</button>
-  <button onclick="startStroop()">3) Stroop</button>
-  <button onclick="startNBack()">4) 2-Back</button>
-  <button onclick="startPWR()">5) PWR (Hızlı Görsel)</button>
-</div>
-
-<div id="instructions"></div>
-<div id="stimulus"></div>
-
-<div id="results" class="hidden">
-  <h2>Sonuçlar</h2>
-  <div id="detail"></div>
-  <h3 id="finalScore"></h3>
-</div>
-
-<script>
-const stimEl = document.getElementById('stimulus');
-const instEl = document.getElementById('instructions');
-const resultsEl = document.getElementById('results');
-const detailEl = document.getElementById('detail');
-let results = {};
-
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-// ------------ Reaction Test ------------
-async function startReaction(){
-  instEl.innerText = "Ekrana 'TIKLA' geldiğinde ekrana dokun!";
-  stimEl.textContent = "";
-  await sleep(1500 + Math.random()*1500);
-  stimEl.textContent = "TIKLA!";
-  const start = performance.now();
-  function handler(){
-    const rt = performance.now() - start;
-    results.reaction = rt;
-    stimEl.textContent = `Tepki: ${rt.toFixed(0)} ms`;
-    document.body.removeEventListener('click', handler);
-  }
-  document.body.addEventListener('click', handler);
-}
-
-// ------------ Go / No-Go ------------
-async function startGoNoGo(){
-  instEl.innerText = "Yeşil görünce TIKLA, kırmızıda DOKUNMA. 20 tur.";
-  let score=0, total=20;
-  for(let i=0;i<total;i++){
-    await sleep(800);
-    const go = Math.random()<0.7;
-    stimEl.textContent = go ? '🟢' : '🔴';
-    let pressed=false;
-    function handler(){pressed=true;}
-    document.body.addEventListener('click',handler);
-    await sleep(1000);
-    document.body.removeEventListener('click',handler);
-    if((go && pressed) || (!go && !pressed)) score++;
-    stimEl.textContent="";
-  }
-  results.gonogo = (score/total)*100;
-  stimEl.textContent = `Doğruluk: ${results.gonogo.toFixed(1)}%`;
-}
-
-// ------------ Stroop Test ------------
-async function startStroop(){
-  instEl.innerText = "Gösterilen KELİMENİN RENGİNİ söyle (tıkla): Kırmızı, Mavi, Yeşil. 15 tur.";
-  const colors = ['kırmızı','mavi','yeşil'];
-  const cssColors = {kırmızı:'red',mavi:'blue',yeşil:'green'};
-  let correct=0, total=15;
-  for(let i=0;i<total;i++){
-    await sleep(700);
-    const word = colors[Math.floor(Math.random()*3)];
-    const ink = colors[Math.floor(Math.random()*3)];
-    stimEl.innerHTML = `<span style="color:${cssColors[ink]};font-size:50px">${word.toUpperCase()}</span>`;
-    const start = performance.now();
-    let answered=false;
-    function handler(e){
-      if(answered) return;
-      answered=true;
-      const pick = prompt("Rengi yaz: kırmızı/mavi/yeşil").toLowerCase();
-      if(pick===ink) correct++;
-    }
-    document.body.addEventListener('click',handler,{once:true});
-    await sleep(2000);
-    document.body.removeEventListener('click',handler);
-  }
-  results.stroop = (correct/total)*100;
-  stimEl.textContent = `Doğruluk: ${results.stroop.toFixed(1)}%`;
-}
-
-// ------------ 2-Back ------------
-async function startNBack(){
-  instEl.innerText = "Bir harf dizisi gelecek. Şimdiki harf 2 önceki ile aynıysa tıkla. 25 tur.";
-  const letters = "ABCDEFGH";
-  let stream=[], hits=0, correct=0;
-  for(let i=0;i<25;i++){
-    const ch = letters[Math.floor(Math.random()*letters.length)];
-    stream.push(ch);
-    stimEl.textContent = ch;
-    let pressed=false;
-    function handler(){pressed=true;}
-    document.body.addEventListener('click',handler);
-    await sleep(1500);
-    document.body.removeEventListener('click',handler);
-    const isTarget = (i>=2 && ch===stream[i-2]);
-    if(isTarget && pressed) correct++;
-    if(!isTarget && !pressed) correct++;
-  }
-  results.nback = (correct/25)*100;
-  stimEl.textContent = `Doğruluk: ${results.nback.toFixed(1)}%`;
-}
-
-// ------------ PWR (Hızlı Görsel) ------------
-async function startPWR(){
-  instEl.innerText = "Ekranda mavi kare görünce tıkla. 30 tur.";
-  let correct=0;
-  for(let i=0;i<30;i++){
-    await sleep(400 + Math.random()*600);
-    const isTarget = Math.random()<0.6;
-    stimEl.textContent = isTarget ? "🟦" : "⬜";
-    let pressed=false;
-    function handler(){pressed=true;}
-    document.body.addEventListener('click',handler);
-    await sleep(600);
-    document.body.removeEventListener('click',handler);
-    if((isTarget && pressed) || (!isTarget && !pressed)) correct++;
-    stimEl.textContent="";
-  }
-  results.pwr = (correct/30)*100;
-  stimEl.textContent = `Doğruluk: ${results.pwr.toFixed(1)}%`;
-  showFinal();
-}
-
-// ------------ Sonuç Hesaplama ------------
-function showFinal(){
-  instEl.textContent = "Tüm testler tamamlandı.";
-  resultsEl.classList.remove('hidden');
-  let detailHtml = `
-    Reaksiyon: ${results.reaction?.toFixed(0)} ms<br>
-    Go/No-Go: ${results.gonogo?.toFixed(1)}%<br>
-    Stroop: ${results.stroop?.toFixed(1)}%<br>
-    2-Back: ${results.nback?.toFixed(1)}%<br>
-    PWR: ${results.pwr?.toFixed(1)}%
-  `;
-  detailEl.innerHTML = detailHtml;
-
-  // Basit odak skoru (normalize)
-  const rtScore = Math.max(0,100 - (results.reaction-200)/3);
-  const others = [results.gonogo, results.stroop, results.nback, results.pwr];
-  const meanOthers = others.reduce((a,b)=>a+b,0)/others.length;
-  const final = ((rtScore + meanOthers)/2).toFixed(1);
-  document.getElementById('finalScore').innerText = `Genel Odak Puanı: ${final}/100`;
-}
-</script>
+  <h1>🎯 Odak Testi</h1>
+  <p>Level 1’i bitir → Level 2’yi aç → Sonuç al!</p>
+  <div id="menu">
+    <button onclick="startLevel(1)">▶ Level 1</button>
+    <button id="level2btn" onclick="startLevel(2)" disabled>▶ Level 2</button>
+    <button id="resultsbtn" onclick="location='results.html'" disabled>🏆 Sonuçlar</button>
+  </div>
+<script src="js/main.js"></script>
 </body>
 </html>
