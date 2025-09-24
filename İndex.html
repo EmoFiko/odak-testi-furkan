@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odak Testi</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    button { margin: 8px; padding: 10px 20px; font-size: 18px; }
+    #stimulus { font-size: 40px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Odak Testleri</h1>
+  <p>Başlamak için bir test seç</p>
+  <button onclick="reactionTest()">Reaksiyon Süresi</button>
+  <button onclick="goNoGo()">Go / No-Go</button>
+  <div id="stimulus"></div>
+  <script>
+    async function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+    async function reactionTest(){
+      const stim = document.getElementById('stimulus');
+      stim.textContent = 'Hazır ol...';
+      await sleep(1500 + Math.random()*1500);
+      stim.textContent = 'TIKLA!';
+      const start = performance.now();
+      document.body.onclick = ()=>{
+        const rt = (performance.now()-start).toFixed(0);
+        stim.textContent = `Tepki: ${rt} ms`;
+        document.body.onclick = null;
+      };
+    }
+
+    async function goNoGo(){
+      const stim = document.getElementById('stimulus');
+      let score = 0;
+      for(let i=0;i<20;i++){
+        await sleep(800);
+        const isGo = Math.random()<0.7;
+        stim.textContent = isGo ? 'YEŞİL' : 'KIRMIZI';
+        const start = performance.now();
+        let pressed = false;
+        const handler = ()=>{pressed=true;};
+        document.body.onclick = handler;
+        await sleep(1000);
+        document.body.onclick = null;
+        if(isGo && pressed) score++;
+        if(!isGo && !pressed) score++;
+      }
+      stim.textContent = `Skor: ${score}/20`;
+    }
+  </script>
+</body>
+</html>
